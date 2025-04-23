@@ -46,14 +46,14 @@ required_employees_per_day = {
 
 ## ⚡ Comment l'utiliser
 
-1. Ouvrir le script dans un notebook Jupyter ou sur [Kaggle](https://kaggle.com)
+1. Ouvrir le script [MVP.ipynb](MVP.ipynb) dans un notebook Jupyter ou sur [Kaggle](https://kaggle.com)
 2. Modifier les données d’entrée dans les blocs `employees`, `business_schedule` et `required_employees_per_day`
 3. Exécuter le notebook
 4. Visualiser le planning + bilan ou récupérer les CSV générés :
    - `planning.csv` : planning complet avec jour, horaires, employés
    - `bilan_employes.csv` : total des heures assignées par employé
 
-💡 Les fichiers sont sauvegardés dans le répertoire de travail courant, accessibles dans l’interface Kaggle (onglet *Files*).
+💡 Les fichiers sont sauvegardés dans le répertoire de travail courant, accessibles dans l’interface Kaggle sous les noms [planning.csv](planning.csv) et [bilan_employes.csv](bilan_employes.csv).
 
 ---
 
