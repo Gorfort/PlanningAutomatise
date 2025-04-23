@@ -1,6 +1,6 @@
-# 🗓️ Planning Automatisé pour Pharmacie
+# 🗓️ Planning Automatisé pour Entreprise
 
-Un script Python permettant de générer automatiquement un planning hebdomadaire équilibré pour une petite entreprise (ex. pharmacie), en prenant en compte les contraintes de disponibilités, de vacances, de jours préférés et d'équilibrage horaire.
+Un script Python MVP permettant de générer automatiquement un planning hebdomadaire équilibré pour une petite entreprise (ex. pharmacie), en prenant en compte les contraintes de disponibilités, de vacances, de jours préférés et d'équilibrage horaire.
 
 ---
 
@@ -68,15 +68,15 @@ required_employees_per_day = {
 
 ## ❌ Limites actuelles
 
-- Pas encore d'interface utilisateur graphique (version Streamlit à venir)
+- Pas encore d'interface utilisateur graphique
 - Aucune gestion de préférences souples (actuellement toutes les contraintes sont dures)
 - Optimisation possible limitée à des cas de petite à moyenne taille
 
 ---
 
-## 🚀 Prochaines évolutions
+## 🚀 Prochaines évolutions après le MVP
 
-- Ajout d'une **web app Streamlit** pour faciliter l’usage par les utilisateurs non techniques
+- Ajout d'une **web app** pour faciliter l’usage par les utilisateurs non techniques
 - Intégration des **préférences de planning** avec pondération (ex. préférences horaires, jours favoris)
 - Ajout d’un export **Excel avec mise en forme visuelle**
 - Tests unitaires & amélioration des performances du solveur
