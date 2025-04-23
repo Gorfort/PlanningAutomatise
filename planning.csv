@@ -1,0 +1,19 @@
+Jour,Début,Fin,Poste #,Moment,Employé assigné,Durée (h)
+Lundi,08:00,12:00,1,matin,Charlie,4.0
+Lundi,08:00,12:00,2,matin,Alice,4.0
+Lundi,14:00,18:00,1,apres-midi,Charlie,4.0
+Lundi,14:00,18:00,2,apres-midi,Bob,4.0
+Mardi,08:00,12:00,1,matin,Charlie,4.0
+Mardi,08:00,12:00,2,matin,Bob,4.0
+Mardi,14:00,18:00,1,apres-midi,Charlie,4.0
+Mardi,14:00,18:00,2,apres-midi,Bob,4.0
+Mercredi,08:00,12:00,1,matin,Bob,4.0
+Jeudi,08:00,12:00,1,matin,Charlie,4.0
+Jeudi,08:00,12:00,2,matin,Alice,4.0
+Jeudi,14:00,18:00,1,apres-midi,Charlie,4.0
+Jeudi,14:00,18:00,2,apres-midi,Alice,4.0
+Vendredi,08:00,12:00,1,matin,Charlie,4.0
+Vendredi,08:00,12:00,2,matin,Bob,4.0
+Vendredi,14:00,18:00,1,apres-midi,Charlie,4.0
+Vendredi,14:00,18:00,2,apres-midi,Alice,4.0
+Samedi,09:00,13:00,1,matin,Bob,4.0
