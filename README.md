@@ -39,7 +39,8 @@ required_employees_per_day = {
     "Lundi": 2,
     "Mardi": 2,
     ...
-}```
+}
+```
 
 ---
 
