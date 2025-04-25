@@ -1,6 +1,6 @@
 # 📅 Translation du MVP.py en application
 
-Cette application reprend le code [`MVP.py`](../MVP.py) mais en le rendant interactif via Streamlit.
+Cette application reprend le code [`MVP.ipynb`](../MVP.ipynb) mais en le rendant interactif via Streamlit.
 
 ## 🚀 Lancement rapide
 
