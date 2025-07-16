@@ -16,9 +16,9 @@ moments = ["matin", "apres-midi"]
 # --- Initialize session_state keys ---
 if "employees" not in st.session_state:
     st.session_state["employees"] = {
-        "Alice": {"weekly_hours": 20, "days_off": [], "vacation_days": [], "assigned_days": []},
-        "Bob": {"weekly_hours": 30, "days_off": [], "vacation_days": [], "assigned_days": []},
-        "Charlie": {"weekly_hours": 40, "days_off": [], "vacation_days": [], "assigned_days": []}
+        "Alice": {"weekly_hours": 20, "days_off": [], "vacation_days": [], "assigned_days": [], "gender": "F"},
+        "Bob": {"weekly_hours": 30, "days_off": [], "vacation_days": [], "assigned_days": [], "gender": "M"},
+        "Charlie": {"weekly_hours": 40, "days_off": [], "vacation_days": [], "assigned_days": [], "gender": "M"}
     }
 if "business_schedule" not in st.session_state:
     st.session_state["business_schedule"] = {
@@ -91,11 +91,20 @@ with st.expander("👥 Gestion des employés", expanded=True):
             st.rerun()
 
         new_name = st.text_input("Nom du nouvel employé")
+        new_gender = st.radio("Genre", ["M", "F"], key="new_emp_gender", horizontal=True)
+
         if new_name and new_name not in st.session_state["employees"]:
             if st.form_submit_button("➕ Ajouter l'employé"):
-                st.session_state["employees"][new_name] = {"weekly_hours": 20, "days_off": [], "vacation_days": [], "assigned_days": []}
+                st.session_state["employees"][new_name] = {
+                    "weekly_hours": 20,
+                    "days_off": [],
+                    "vacation_days": [],
+                    "assigned_days": [],
+                    "gender": new_gender
+                }
                 st.success(f"{new_name} a été ajouté.")
                 st.rerun()
+
         if st.form_submit_button("✅ Mettre à jour les employés"):
             st.success("Modifications enregistrées")
 
@@ -157,11 +166,17 @@ def select_best_solution(sols, shifts, employees):
 def check_incoherencies(employees):
     errors = []
     for name, data in employees.items():
+        gender = data.get("gender", "M")
+        il_elle = "il" if gender == "M" else "elle"
+        assigné_e = "assigné" if gender == "M" else "assignée"
+        en_vacances = "en vacances"
+        en_jour_off = "en jour off"
+
         for day, moment in data["assigned_days"]:
             if day in data["days_off"]:
-                errors.append(f"🚫 {name} est assigné à {day} alors qu'il est en jour off.")
+                errors.append(f"🚫 {name} est {assigné_e} à {day} alors qu'{il_elle} est {en_jour_off}.")
             if (day, moment) in data["vacation_days"]:
-                errors.append(f"🚫 {name} est assigné à {day} {moment} alors qu'il est en vacances.")
+                errors.append(f"🚫 {name} est {assigné_e} à {day} {moment} alors qu'{il_elle} est {en_vacances}.")
     return errors
 
 if st.button("🚀 Générer le planning maintenant !"):
