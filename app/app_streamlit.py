@@ -52,7 +52,7 @@ with st.form("daypart_form"):
     submitted = st.form_submit_button("✅ Appliquer la sélection")
     if submitted:
         st.session_state["selected_dayparts"] = new_selected
-        st.experimental_rerun()
+        st.rerun()
 
 selected_dayparts = st.session_state["selected_dayparts"]
 
@@ -88,13 +88,14 @@ with st.expander("👥 Gestion des employés", expanded=True):
                 to_delete.append(name)
         for name in to_delete:
             del st.session_state["employees"][name]
-            st.experimental_rerun()
+            st.rerun()
+
         new_name = st.text_input("Nom du nouvel employé")
         if new_name and new_name not in st.session_state["employees"]:
             if st.form_submit_button("➕ Ajouter l'employé"):
                 st.session_state["employees"][new_name] = {"weekly_hours": 20, "days_off": [], "vacation_days": [], "assigned_days": []}
                 st.success(f"{new_name} a été ajouté.")
-                st.experimental_rerun()
+                st.rerun()
         if st.form_submit_button("✅ Mettre à jour les employés"):
             st.success("Modifications enregistrées")
 
