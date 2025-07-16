@@ -13,29 +13,13 @@ def get_time_of_day(start): return "matin" if int(start.split(":")[0]) < 12 else
 jours_semaine = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
 moments = ["matin", "apres-midi"]
 
-# Sélection des jours/moments
-st.subheader("🧭 Sélection des jours et créneaux à planifier")
-selected_dayparts = {}
-with st.form("daypart_form"):
-    for jour in jours_semaine:
-        col1, col2 = st.columns(2)
-        matin = col1.checkbox(f"{jour} matin", value=True, key=f"{jour}_matin")
-        aprem = col2.checkbox(f"{jour} après-midi", value=True, key=f"{jour}_aprem")
-        parts = []
-        if matin: parts.append("matin")
-        if aprem: parts.append("apres-midi")
-        if parts:
-            selected_dayparts[jour] = parts
-    submitted = st.form_submit_button("✅ Appliquer la sélection")
-
-# Données par défaut
+# --- Initialize session_state keys ---
 if "employees" not in st.session_state:
     st.session_state["employees"] = {
         "Alice": {"weekly_hours": 20, "days_off": [], "vacation_days": [], "assigned_days": []},
         "Bob": {"weekly_hours": 30, "days_off": [], "vacation_days": [], "assigned_days": []},
         "Charlie": {"weekly_hours": 40, "days_off": [], "vacation_days": [], "assigned_days": []}
     }
-
 if "business_schedule" not in st.session_state:
     st.session_state["business_schedule"] = {
         "Lundi": [("08:00", "12:00"), ("14:00", "18:00")],
@@ -46,11 +30,33 @@ if "business_schedule" not in st.session_state:
         "Samedi": [("09:00", "13:00"), ("14:00", "18:00")],
         "Dimanche": [("10:00", "14:00"), ("14:00", "18:00")]
     }
-
 if "required_employees_per_day" not in st.session_state:
     st.session_state["required_employees_per_day"] = {j: 1 for j in jours_semaine}
+if "selected_dayparts" not in st.session_state:
+    # By default, all days and moments are selected
+    st.session_state["selected_dayparts"] = {j: moments[:] for j in jours_semaine}
 
-# Horaires
+# --- Dayparts selection form ---
+st.subheader("🧭 Sélection des jours et créneaux à planifier")
+with st.form("daypart_form"):
+    new_selected = {}
+    for jour in jours_semaine:
+        col1, col2 = st.columns(2)
+        matin = col1.checkbox(f"{jour} matin", value=("matin" in st.session_state["selected_dayparts"].get(jour, [])), key=f"{jour}_matin")
+        aprem = col2.checkbox(f"{jour} après-midi", value=("apres-midi" in st.session_state["selected_dayparts"].get(jour, [])), key=f"{jour}_aprem")
+        parts = []
+        if matin: parts.append("matin")
+        if aprem: parts.append("apres-midi")
+        if parts:
+            new_selected[jour] = parts
+    submitted = st.form_submit_button("✅ Appliquer la sélection")
+    if submitted:
+        st.session_state["selected_dayparts"] = new_selected
+        st.experimental_rerun()
+
+selected_dayparts = st.session_state["selected_dayparts"]
+
+# --- Horaires form ---
 with st.expander("🔧 Réglages des horaires et besoins", expanded=False):
     with st.form("horaires_form"):
         for day in selected_dayparts:
@@ -67,9 +73,10 @@ with st.expander("🔧 Réglages des horaires et besoins", expanded=False):
             st.session_state["required_employees_per_day"][day] = st.slider(f"👥 Besoin en personnel {day}", 0, 5, st.session_state["required_employees_per_day"].get(day, 1))
         st.form_submit_button("✅ Mettre à jour les horaires")
 
-# Employés dynamiques
+# --- Employees form ---
 with st.expander("👥 Gestion des employés", expanded=True):
     with st.form("employees_form"):
+        to_delete = []
         for name in list(st.session_state["employees"].keys()):
             emp = st.session_state["employees"][name]
             st.markdown(f"#### 👤 {name}")
@@ -78,15 +85,18 @@ with st.expander("👥 Gestion des employés", expanded=True):
             emp["vacation_days"] = st.multiselect(f"{name} - Vacances", [(j, m) for j in selected_dayparts for m in selected_dayparts[j]], default=emp["vacation_days"], format_func=lambda x: f"{x[0]} {x[1]}", key=f"{name}_vac")
             emp["assigned_days"] = st.multiselect(f"{name} - Assignés", [(j, m) for j in selected_dayparts for m in selected_dayparts[j]], default=emp["assigned_days"], format_func=lambda x: f"{x[0]} {x[1]}", key=f"{name}_ass")
             if st.checkbox(f"🗑️ Supprimer {name}", key=f"{name}_delete"):
-                del st.session_state["employees"][name]
-                st.experimental_rerun()
+                to_delete.append(name)
+        for name in to_delete:
+            del st.session_state["employees"][name]
+            st.experimental_rerun()
         new_name = st.text_input("Nom du nouvel employé")
-        if st.form_submit_button("✅ Mettre à jour les employés"):
-            st.success("Modifications enregistrées")
         if new_name and new_name not in st.session_state["employees"]:
             if st.form_submit_button("➕ Ajouter l'employé"):
                 st.session_state["employees"][new_name] = {"weekly_hours": 20, "days_off": [], "vacation_days": [], "assigned_days": []}
                 st.success(f"{new_name} a été ajouté.")
+                st.experimental_rerun()
+        if st.form_submit_button("✅ Mettre à jour les employés"):
+            st.success("Modifications enregistrées")
 
 # Génération du planning
 def generate_multi_shifts(schedule, required, selected_dayparts):
@@ -142,22 +152,46 @@ def select_best_solution(sols, shifts, employees):
         return sum(abs(hrs[e] - employees[e]["weekly_hours"]) for e in employees)
     return min(sols, key=score) if sols else None
 
+# Vérification des incohérences
+def check_incoherencies(employees):
+    errors = []
+    for name, data in employees.items():
+        for day, moment in data["assigned_days"]:
+            if day in data["days_off"]:
+                errors.append(f"🚫 {name} est assigné à {day} alors qu'il est en jour off.")
+            if (day, moment) in data["vacation_days"]:
+                errors.append(f"🚫 {name} est assigné à {day} {moment} alors qu'il est en vacances.")
+    return errors
+
 if st.button("🚀 Générer le planning maintenant !"):
-    shifts = generate_multi_shifts(st.session_state["business_schedule"], st.session_state["required_employees_per_day"], selected_dayparts)
-    solutions, shifts = build_scheduler(st.session_state["employees"], shifts)
-    if solutions:
-        sol = select_best_solution(solutions, shifts, st.session_state["employees"])
-        df = pd.DataFrame([{
-            "Jour": s["day"], "Début": s["start"], "Fin": s["end"], "Poste": s["position"],
-            "Moment": s["moment"], "Employé": sol[s["var_name"]], "Durée (h)": s["duration_hours"]
-        } for s in shifts])
-        bilan = pd.DataFrame([{ "Employé": e, "Heures assignées": df[df["Employé"] == e]["Durée (h)"].sum(), "Contrat (h)": st.session_state["employees"][e]["weekly_hours"] } for e in st.session_state["employees"]])
-        st.success("✅ Planning généré avec succès !")
-        st.subheader("📅 Planning")
-        st.dataframe(df)
-        st.subheader("📊 Bilan")
-        st.dataframe(bilan)
-        st.download_button("📥 Télécharger le planning", data=df.to_csv(index=False), file_name="planning.csv")
-        st.download_button("📥 Télécharger le bilan", data=bilan.to_csv(index=False), file_name="bilan_employes.csv")
+    incoherencies = check_incoherencies(st.session_state["employees"])
+    
+    if incoherencies:
+        st.error("❌ Conflits détectés dans les données des employés :")
+        for err in incoherencies:
+            st.warning(err)
+        st.info("Corrigez les incohérences avant de générer le planning.")
     else:
-        st.error("❌ Aucune solution trouvée avec les contraintes actuelles.")
+        shifts = generate_multi_shifts(st.session_state["business_schedule"], st.session_state["required_employees_per_day"], selected_dayparts)
+        solutions, shifts = build_scheduler(st.session_state["employees"], shifts)
+        if solutions:
+            sol = select_best_solution(solutions, shifts, st.session_state["employees"])
+            df = pd.DataFrame([{
+                "Jour": s["day"], "Début": s["start"], "Fin": s["end"], "Poste": s["position"],
+                "Moment": s["moment"], "Employé": sol[s["var_name"]], "Durée (h)": s["duration_hours"]
+            } for s in shifts])
+            bilan = pd.DataFrame([{ 
+                "Employé": e, 
+                "Heures assignées": df[df["Employé"] == e]["Durée (h)"].sum(), 
+                "Contrat (h)": st.session_state["employees"][e]["weekly_hours"] 
+            } for e in st.session_state["employees"]])
+            
+            st.success("✅ Planning généré avec succès !")
+            st.subheader("📅 Planning")
+            st.dataframe(df)
+            st.subheader("📊 Bilan")
+            st.dataframe(bilan)
+            st.download_button("📥 Télécharger le planning", data=df.to_csv(index=False), file_name="planning.csv")
+            st.download_button("📥 Télécharger le bilan", data=bilan.to_csv(index=False), file_name="bilan_employes.csv")
+        else:
+            st.error("❌ Aucune solution trouvée avec les contraintes actuelles.")
